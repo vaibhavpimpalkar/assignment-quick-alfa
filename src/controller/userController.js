@@ -8,7 +8,7 @@ const {
   validPassword,
   validtitle,
 } = require("../validator/validator");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 const signup = async (req, res) => {
@@ -71,23 +71,19 @@ const signup = async (req, res) => {
     const num = await usermodel.findOne({ number: number });
 
     if (num) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          msg: "number is already exist, please provide another ",
-        });
+      return res.status(400).send({
+        status: false,
+        msg: "number is already exist, please provide another ",
+      });
     }
 
     const Email = await usermodel.findOne({ email: email });
 
     if (Email) {
-      return res
-        .status(400)
-        .send({
-          status: false,
-          msg: "email is already exist, please provide another",
-        });
+      return res.status(400).send({
+        status: false,
+        msg: "email is already exist, please provide another",
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -107,80 +103,39 @@ const signup = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+const login = async function (req, res) {
   try {
-    let data = req.body;
-    // ---------- validations start -----------------
-    // if (!validBody(data))
-    //   return res
-    //     .status(400)
-    //     .send({ status: false, message: "Please provide email and password" });
+    let loginData = req.body;
+    let { email, password, number } = loginData;
 
-    let { email, number, password } = data;
+    let user = await usermodel.findOne({
+      $or: [{ email: email }, { number: number }],
+    });
+    if (user && user.password === password) return;
 
-    // // if (!email || !password)
-    // //   return res
-    // //     .status(400)
-    // //     .send({ status: false, message: "Please provide email and password" });
-
-    // // if (!validMail(email))
-    // //   return res.status(400).send({
-    // //     status: false,
-    // //     message: "Please provide valid Mail",
-    // //   });
-
-    // // if (!validPassword(password))
-    // //   return res.status(400).send({
-    // //     status: false,
-    // //     message: "Please provide valid password",
-    // //   });
-
-    // // if (!validPhone(number)) {
-    // //   return res
-    // //     .status(400)
-    // //     .send({ status: false, msg: "please provide valid Number.." });
-    // // }
-
-    // const user = await usermodel.findOne({
-    //   number  :  number,
-    //   email : email
-    // });
-
-    // if (user && user.password === password) {
-    //   res.status(200).send({
-    //     status: true,
-    //     msg: user,
-    //   });
-    // } else {
-    //   res.status(401).send({
-    //     status: false,
-    //     msg: "Invalid login credentials",
-    //   });
-    // const { numberOrEmail, password } = data;
-    const user = await usermodel.findOne({ $or: [ { number: number }, { email: email } ] });
-  if (!user) {
-    return res.status(400).send({ message: 'Invalid credentials' });
-  }
-
-const pass = await usermodel.findOne({user,password})
-
-if (!pass) return res.status(400).send({msg : })
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(400).json({ message: 'Invalid credentials' });
-
-      // ------ End -------------
-      let token = jwt.sign({ user: user._id.toString() }, "supersecret", {
-        expiresIn: "24h",
-      });
-      res.status(201).send({ status: true, message: "Success", data: token });
+    //============================== for password encryption ==============================================
+    //comparing hard-coded password to the hashed password
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(400).send({ status: false, message: "wrong password" });
     }
-  
+    //=================================== token creation ================================================
+    let token = jwt.sign(
+      { userId: user._id },
+      "supersecret",
+      { expiresIn: "24h" }
+    );
+
+    return res
+      .status(200)
+      .send({
+        status: true,
+        message: "login successfully",
+        data: { userId: user._id, token: token },
+      });
+  } catch (err) {
+    return res.status(500).send({ status: false, message: err.message });
   }
-  catch (err) {
-    res.status(500).send({ status: false, Error: err.message });
-  }
-}
+};
 
 module.exports = { signup, login };

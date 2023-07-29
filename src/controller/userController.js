@@ -112,6 +112,7 @@ const login = async function (req, res) {
       $or: [{ email: email }, { number: number }],
     });
     if (user && user.password === password) return;
+    if(!user ) return res.status(404).send ({status : false ,msg : "user not found"})
 
     //============================== for password encryption ==============================================
     //comparing hard-coded password to the hashed password
@@ -121,21 +122,84 @@ const login = async function (req, res) {
     }
     //=================================== token creation ================================================
     let token = jwt.sign(
-      { userId: user._id },
-      "supersecret",
-      { expiresIn: "24h" }
+      {
+        userId: user._id.toString(),
+      
+      },
+      "supersecret"
     );
-
-    return res
-      .status(200)
-      .send({
-        status: true,
-        message: "login successfully",
-        data: { userId: user._id, token: token },
-      });
+    res.setHeader("x-auth-token", token);
+    res.send({ status: true, data: token });
   } catch (err) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
 
-module.exports = { signup, login };
+const update = async (req, res) => {
+  try {
+    const { number, email, password, name } = req.body;
+
+
+    let token = req.headers["x-Auth-token"];
+    if (!token) token = req.headers["x-auth-token"];
+  
+    
+    if (!token) return res.send({ status: false, msg: "token must be present" });
+  
+    console.log(token);
+  
+   
+    let decodedToken = jwt.verify(token, "functionup-plutonium-very-very-secret-key");
+    if (!decodedToken)
+      return res.send({ status: false, msg: "token is invalid" });
+  
+    // Find the user by number or email
+    // let user = await usermodel.findOne({
+    //   $or: [{ email: email }, { number: number }],
+    // });
+
+    if (!user) {
+      return res
+        .status(400)
+        .send({ status: false, msg: "invalid credintials" });
+    }
+    const save = await usermodel.findOneAndUpdate(user,{ $set: {
+      number, email, password, name
+  }
+}, {
+  new: true
+})
+res.status(200).send({status : true , msg : save})
+  } catch (err) {
+    return res.status(500).send({ status: false, msg: err.message });
+  }
+};
+
+const deleteuser = async (req,res) =>{
+
+try {
+    let number = req.body
+    let varify = await usermodel.findOne({number : number})
+
+    // if(!varify){
+    //   return res.status(400).send({status : false , msg : "please provide number in body"})
+    // } 
+    if(varify){
+        varify.remove()
+        res.status(201).send({status: true , msg :"user deleted "})
+    }else{
+      return res.status(400).send({status : false , msg : "user not found"})
+    }
+
+
+
+
+
+} catch (err) {
+  return res.status(500).send({status: false , msg :err.msg})
+}
+
+
+}
+
+module.exports = { signup, login , update , deleteuser};

@@ -137,43 +137,23 @@ const login = async function (req, res) {
 
 const update = async (req, res) => {
   try {
-    const { number, email, password, name } = req.body;
-
-
-    let token = req.headers["x-Auth-token"];
-    if (!token) token = req.headers["x-auth-token"];
   
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
     
-    if (!token) return res.send({ status: false, msg: "token must be present" });
+      const { name } = req.body;
+      req.user.name = name;
+      await req.user.save();
+    
+      res.json({ message: 'User updated successfully' });
   
-    console.log(token);
-  
-   
-    let decodedToken = jwt.verify(token, "functionup-plutonium-very-very-secret-key");
-    if (!decodedToken)
-      return res.send({ status: false, msg: "token is invalid" });
-  
-    // Find the user by number or email
-    // let user = await usermodel.findOne({
-    //   $or: [{ email: email }, { number: number }],
-    // });
-
-    if (!user) {
-      return res
-        .status(400)
-        .send({ status: false, msg: "invalid credintials" });
-    }
-    const save = await usermodel.findOneAndUpdate(user,{ $set: {
-      number, email, password, name
-  }
-}, {
-  new: true
-})
-res.status(200).send({status : true , msg : save})
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
   }
-};
+
+}
+
 
 const deleteuser = async (req,res) =>{
 

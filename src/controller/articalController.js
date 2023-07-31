@@ -10,37 +10,25 @@ const {
 
 const articalModel = require("../models/articalModel");
 
-const article1 = new articalModel({
-  title: "Article 1",
-  content: "This is a sample article1",
-  isPremium: false,
-});
-const article2 = new articalModel({
-  title: "Article 2",
-  content: "This is a sample article2",
-  isPremium: false,
-});
-const article3 = new articalModel({
-  title: "Article 3",
-  content: "This is a sample article3",
-  isPremium: true,
-});
 
-// Save the sample articles
-article1.save();
-article2.save();
-article3.save();
+
+const createArtical = async function (req,res) {
+  //You can name the req, res objects anything.
+  //but the first parameter is always the request 
+  //the second parameter is always the response
+  let data = req.body;
+  let savedData = await articalModel.create(data);
+  
+  res.send({ msg: savedData });
+};
 
 const getartical = async (req, res) => {
   try {
-    let id = req.params.id;
+    let articalId = req.params.articalId;
 
-    const artical = await articalModel.findById(id);
-    if (!artical) {
-      return res.status(400).send({ status: false, msg: "id not found" });
-    } else {
-      return res.status(201).send({ status: true, msg: artical });
-    }
+    const artical = await articalModel.findById(articalId);
+    res.send({status:true,msg:artical})
+    
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.msg });
   }
@@ -62,4 +50,4 @@ const getall = async (req, res) => {
   }
 };
 
-module.exports = { getartical, getall };
+module.exports = { createArtical,getartical, getall };

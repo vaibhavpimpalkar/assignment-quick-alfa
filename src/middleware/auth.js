@@ -27,22 +27,4 @@ next()
 
 }
 
-
-////Authorazition
-
-// let authorization = async function (req, res, next) {
-
-//     newToken = req.decodedToken  ///acesses the vaule token by its key i. e req.decoded token
-
-//     /// it will take acesses from Authenticate middleware
-
-//     let newModifiedUser = req.params.userId
-//     let loginedinUser = newToken.userId  //stroing the data of newtoken into loginedinuser i.e user id
-
-//     if (newModifiedUser != loginedinUser) return res.send({status:false,msg:"Acesses Deny You don't have Authority for Acesses "});
-
-//     else{
-//         next()
-//     }
-// }
 module.exports =  { authentication}

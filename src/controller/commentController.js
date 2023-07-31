@@ -1,37 +1,29 @@
-const {
-  validBody,
-  validId,
-  validName,
-  validPhone,
-  validMail,
-  validPassword,
-  validtitle,
-} = require("../validator/validator");
-
-const commentModel = require("../models/commentsModel");
 const articalModel = require("../models/articalModel");
 
 const comment = async (req, res) => {
   try {
-    const { articleId, comment } = req.body;
+    const { artical_reference, comment } = req.body;
 
-    if (!articleId)
-      return res
-        .status(400)
-        .send({ status: false, msg: "please provide artical id" });
+    const artical = await articalModel.findById(artical_reference);
 
-    // Find the article id
-    const article = articalModel.findById(articleId);
-
-    if (!article) {
-      return res.status(404).send({ status: false, msg: "invalid artical id" });
+    if (!artical) {
+      return res.status(404).json({ message: 'Artical not found' });
     }
-    let data = { articalModel, comment };
 
-    const result = await commentModel.create(data);
-    return res.status(201).send({ status: true, msg: result });
+    if (artical.is_premium && !req.user?.is_premium_user) {
+      return res.status(403).json({ message: 'Premium artical, upgrade to comment' });
+    }
+
+    const newComment = new Comment({
+      artical_reference,
+      user_reference: req.userId,
+      comment,
+    });
+
+    await newComment.save();
+    res.status(201).json({ message: 'Comment added successfully' });
   } catch (err) {
-    return res.status(500).send({ status: false, msg: err.msg });
+    res.status(500).json({ message: 'Error adding comment',});
   }
 };
 

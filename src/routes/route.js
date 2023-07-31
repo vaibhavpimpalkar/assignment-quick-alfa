@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 
-// ______________________________________IMPORTING ALL MDULES________________________________
+// _____________________________________IMPORTING ALL MDULES_______________________________
 
 const {
   signup,
@@ -11,7 +11,7 @@ const {
   deleteuser,
 } = require("../controller/userController");
 
-const { getartical, getall } = require ("../controller/articalController")
+const { createArtical,getartical, getall } = require ("../controller/articalController")
 
 const { comment } = require("../controller/commentController");
 
@@ -25,21 +25,21 @@ const {premiumuser} = require ("../controller/premiumController")
 
 router.post("/signup", signup);
 router.post("/login", login);
-router.post("/editUser",authentication, update);
+router.post("/editUser/:userId",authentication, update);
 router.delete("/deleteUser",authentication, deleteuser);
 
-// _____________________ARTICLE_____________________________________________
-
-router.get("/getArticle/:id", getartical);
+// ____________________ARTICLE____________________________________________
+router.post("/Artical",createArtical);
+router.get("/getArticle/:articalId", getartical);
 router.get("/getAllArticles", getall);
 
-// ______________________________________COMMENT____________________________
+// _____________________________________COMMENT___________________________
 
-router.post("/comment",comment)
+router.post("/createcomment",authentication,comment)
 
-// _______________________PREMIUM___________________________________________
+// ______________________PREMIUM__________________________________________
 
-router.post("/goPremium",premiumuser)
+router.post("/goPremium",authentication,premiumuser)
 
 
 

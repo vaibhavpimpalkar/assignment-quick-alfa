@@ -11,6 +11,8 @@ const {
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+
+//----------------------------user sign up----------------------------
 const signup = async (req, res) => {
   try {
     let data = req.body;
@@ -103,6 +105,7 @@ const signup = async (req, res) => {
   }
 };
 
+//----------------------------user login------------------------
 const login = async function (req, res) {
   try {
     let loginData = req.body;
@@ -134,19 +137,19 @@ const login = async function (req, res) {
     return res.status(500).send({ status: false, message: err.message });
   }
 };
-
+//------------------------updating user-------------------------------------
 const update = async (req, res) => {
   try {
   
-      if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-    
-      const { name } = req.body;
-      req.user.name = name;
-      await req.user.save();
-    
-      res.json({ message: 'User updated successfully' });
+    let userId = req.params.userId;
+    let user = await usermodel.findById(userId);
+    //Return an error if no user with the given id exists in the db
+    if (!user) {
+      return res.send("No such user exists");
+    }
+    let userData = req.body;
+  let updatedUser = await usermodel.findOneAndUpdate({ _id: userId }, userData,{new:true});
+  res.send({ status: updatedUser});
   
   } catch (err) {
     return res.status(500).send({ status: false, msg: err.message });
@@ -154,32 +157,15 @@ const update = async (req, res) => {
 
 }
 
-
+//-------------------------deleted user------------------------------
 const deleteuser = async (req,res) =>{
+  try {
+    await usermodel.findByIdAndDelete(req.userId).exec();
+    res.status(200).json({ message: 'User profile deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting user profile' });
+  }
 
-try {
-    let number = req.body
-    let varify = await usermodel.findOne({number : number})
-
-    // if(!varify){
-    //   return res.status(400).send({status : false , msg : "please provide number in body"})
-    // } 
-    if(varify){
-        varify.remove()
-        res.status(201).send({status: true , msg :"user deleted "})
-    }else{
-      return res.status(400).send({status : false , msg : "user not found"})
-    }
-
-
-
-
-
-} catch (err) {
-  return res.status(500).send({status: false , msg :err.msg})
-}
-
-
-}
+};
 
 module.exports = { signup, login , update , deleteuser};

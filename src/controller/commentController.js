@@ -1,5 +1,6 @@
 const articalModel = require("../models/articalModel");
-
+const commentmodel = require("../models/commentsModel")
+const  usermodel = require("../models/userModel")
 const comment = async (req, res) => {
   try {
     const { artical_reference, comment } = req.body;
@@ -7,11 +8,11 @@ const comment = async (req, res) => {
     const artical = await articalModel.findById(artical_reference);
 
     if (!artical) {
-      return res.status(404).json({ message: 'Artical not found' });
+      return res.status(404).send({ message: 'Artical not found' });
     }
 
     if (artical.is_premium && !req.user?.is_premium_user) {
-      return res.status(403).json({ message: 'Premium artical, upgrade to comment' });
+      return res.status(403).send({ message: 'Premium artical, upgrade to comment' });
     }
 
     const newComment = new Comment({
@@ -20,10 +21,10 @@ const comment = async (req, res) => {
       comment,
     });
 
-    await newComment.save();
-    res.status(201).json({ message: 'Comment added successfully' });
+    await newComment.save()
+    res.status(201).send({ message: 'Comment added successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Error adding comment',});
+    res.status(500).send({ message: 'Error adding comment',});
   }
 };
 

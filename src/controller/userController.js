@@ -145,7 +145,7 @@ const update = async (req, res) => {
     let user = await usermodel.findById(userId);
     //Return an error if no user with the given id exists in the db
     if (!user) {
-      return res.send("No such user exists");
+      return res.status(404).send("No such user exists");
     }
     let userData = req.body;
   let updatedUser = await usermodel.findOneAndUpdate({ _id: userId }, userData,{new:true});
@@ -161,9 +161,9 @@ const update = async (req, res) => {
 const deleteuser = async (req,res) =>{
   try {
     await usermodel.findByIdAndDelete(req.userId).exec();
-    res.status(200).json({ message: 'User profile deleted successfully' });
+    res.status(200).send({ message: 'User profile deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting user profile' });
+    res.status(500).send({ message: 'Error deleting user profile' });
   }
 
 };
